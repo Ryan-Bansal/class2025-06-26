@@ -1,5 +1,5 @@
 ---
-title: "NYC Census"
+title: "NYC Census Tracts Data Across New York City"
 author: "Ryan"
 format: html
 execute:
@@ -10,34 +10,34 @@ execute:
 
 ---
 
+
 ```{r}
+# Load libraries
 library(tidyverse)
 library(scales)
 library(viridis)
 library(plotly)
-# Load the data
+# Load and clean the data
 nyc_data <- read_csv(
   "https://raw.githubusercontent.com/PPBDS/primer.data/master/data-raw/nyc_tracts.csv",
   show_col_types = FALSE
 )
-# Clean and prepare the data
 nyc_data <- nyc_data %>%
   separate(tract, into = c("tract_id", "county", "state"), sep = "; ") %>%
   mutate(
     county = str_trim(county),
     race = factor(race, levels = c("White", "Hispanic", "Black", "Asian")),
     borough = case_when(
-      county == "Bronx County" ~ "Bronx",
-      county == "Kings County" ~ "Brooklyn",
-      county == "New York County" ~ "Manhattan",
-      county == "Queens County" ~ "Queens",
-      county == "Richmond County" ~ "Staten Island",
-      TRUE ~ NA_character_
+      county == "Bronx County"      ~ "Bronx",
+      county == "Kings County"      ~ "Brooklyn",
+      county == "New York County"   ~ "Manhattan",
+      county == "Queens County"     ~ "Queens",
+      county == "Richmond County"   ~ "Staten Island",
+      TRUE                          ~ NA_character_
     )
-  ) %>%
+ ) %>%
   filter(!is.na(borough))
-
-  # Create the static ggplot
+# Create the ggplot
 p <- ggplot(nyc_data, aes(
   x = med_income,
   y = race,
@@ -53,6 +53,7 @@ p <- ggplot(nyc_data, aes(
   facet_wrap(~borough, ncol = 1, scales = "free_y") +
   scale_color_viridis_c(option = "plasma", direction = 1) +
   scale_x_continuous(labels = dollar_format()) +
+  scale_y_discrete(drop = FALSE) +
   labs(
     title = "Race and Income Across Census Tracts in New York City",
     x = "Median household income",
@@ -60,13 +61,13 @@ p <- ggplot(nyc_data, aes(
   ) +
   theme_minimal(base_size = 12) +
   theme(
-    legend.position = "none",
-    strip.text = element_text(size = 12, face = "bold"),
-    axis.text.y = element_text(face = "bold"),
-    plot.title = element_text(hjust = 0.5, face = "bold", size = 14)
+    legend.position   = "none",
+    strip.text        = element_text(size = 12, face = "bold"),
+    axis.text.y       = element_text(face = "bold"),
+    plot.title        = element_text(hjust = 0.5, face = "bold", size = 14)
   )
 # Convert to interactive plot
 ggplotly(p, tooltip = "text")
+
+
 ```
-
-
